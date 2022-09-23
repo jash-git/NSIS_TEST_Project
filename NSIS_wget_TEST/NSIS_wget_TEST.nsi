@@ -1,7 +1,7 @@
 ; 該指令檔使用 HM VNISEdit 指令檔編輯器精靈產生
 
 ; 安裝程式初始定義常量
-!define PRODUCT_NAME "NSIS_NSISdl_download_TEST";jash modify
+!define PRODUCT_NAME "NSIS_wget_TEST";jash modify
 !define PRODUCT_VERSION "v1001";jash modify
 !define PRODUCT_PUBLISHER "VTEAM, Inc.";jash modify
 !define PRODUCT_WEB_SITE "http://www.vteam.com.tw/";jash modify
@@ -60,8 +60,11 @@ ShowInstDetails show
 Section "MainSection" SEC01
   SetOverwrite on
   SetOutPath "$INSTDIR"
-
-  NSISdl::download /TIMEOUT=30000 "https://raw.githubusercontent.com/jash-git/NSIS_TEST_Project/main/NSIS_NSISdl_download_TEST/Release/cloud-computing.png" "$INSTDIR\cloud-computing.png"
+  File "Release\wget.exe";jash modify
   
-  File "Release\favicon.ico";jash modify  
+  ;https://stackoverflow.com/questions/16940554/suppress-windows-command-output-when-using-execwait-in-nsis
+  nsExec::Exec "$INSTDIR\wget.exe --no-check-certificate https://github.com/jash-git/NSIS_TEST_Project/raw/main/NSIS_NSISdl_download_TEST/Release/cloud-computing.png -O $INSTDIR\cloud-computing.png"
+  
+  File "Release\favicon.ico";jash modify
+  Delete "$INSTDIR\wget.exe"  
 SectionEnd
