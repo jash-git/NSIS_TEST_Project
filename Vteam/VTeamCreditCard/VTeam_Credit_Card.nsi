@@ -12,7 +12,18 @@ BrandingText "Provided by VTEAM, Inc."  # 設置UI分割線上的文字。
 
 SetCompressor /SOLID lzma
 
+;自訂輸入頁面相關變數宣告 jash modify
+Var Dialog
+Var TextComport
+Var TextBaudRate
+Var TextFormat
+Var TextTimeOut
+Var TextRetriesCount
+
 ; ------ MUI 現代介面定義 (1.67 版本以上相容) ------
+; include 後面不可寫註解 ,nsDialogs和LogicLib是自訂頁面一定要使用的項目 jash modify
+!include nsDialogs.nsh
+!include LogicLib.nsh
 !include "MUI.nsh"
 
 ; MUI 預定義常量
@@ -31,6 +42,8 @@ SetCompressor /SOLID lzma
 ;!insertmacro MUI_PAGE_LICENSE "..\..\..\path\to\licence\YourSoftwareLicence.txt"
 ; 安裝資料夾選擇頁面
 !insertmacro MUI_PAGE_DIRECTORY
+; 新增自訂輸入頁面 jash modify
+Page custom ecrPageCreate ecrPageLeave
 ; 安裝過程頁面
 !insertmacro MUI_PAGE_INSTFILES
 ; 安裝完成頁面
@@ -64,6 +77,15 @@ Section "MainSection" SEC01
   
   ExecWait "taskkill /f /im VTeamCreditCard.exe";jash modify;/f 強制
   File "net6.0\unzip.exe";jash modify
+  
+  Delete "$INSTDIR\ECR.DAT";jash modify
+  FileOpen $0 "$INSTDIR\ECR.DAT" w
+  FileWrite $0 "$R0$\n"
+  FileWrite $0 "$R3$\n"  
+  FileWrite $0 "$R1$\n"
+  FileWrite $0 "$R2$\n"
+  FileWrite $0 "$R4$\n"
+  FileClose $0
   
   Push $1
   Push $0
@@ -157,3 +179,60 @@ Function un.onUninstSuccess
   MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) 已成功地從你的電腦移除。";MessageBox MB_ICONINFORMATION|MB_OK "PC reboot now"
   ;Reboot
 FunctionEnd
+
+Function ecrPageCreate
+    !insertmacro MUI_HEADER_TEXT "ECR Settings" "Provide RS232 config."
+
+    nsDialogs::Create 1018
+    Pop $Dialog
+
+    ${If} $Dialog == error
+        Abort
+    ${EndIf}
+
+	;x, y, width, height
+    ${NSD_CreateGroupBox} 10% 10u 80% 90u "RS232 Settings"
+    Pop $0
+
+        ${NSD_CreateLabel} 20% 26u 20% 10u "Comport:"
+        Pop $0
+
+        ${NSD_CreateText} 40% 24u 40% 12u "3"
+        Pop $TextComport
+
+        ${NSD_CreateLabel} 20% 40u 20% 10u "BaudRate:"
+        Pop $0
+
+        ${NSD_CreateText} 40% 38u 40% 12u "9600"
+        Pop $TextBaudRate
+
+        ${NSD_CreateLabel} 20% 54u 20% 10u "Format:"
+        Pop $0
+
+        ${NSD_CreateText} 40% 52u 40% 12u "8NS1"
+        Pop $TextFormat
+
+		${NSD_CreateLabel} 20% 68u 20% 10u "TimeOut(sec):"
+		Pop $0
+		
+        ${NSD_CreateText} 40% 66u 40% 12u "90"
+        Pop $TextTimeOut
+
+		${NSD_CreateLabel} 20% 82u 20% 10u "Retries Count:"
+		Pop $0
+
+        ${NSD_CreateText} 40% 80u 40% 12u "3"
+        Pop $TextRetriesCount		
+		
+    nsDialogs::Show
+FunctionEnd
+
+Function ecrPageLeave
+    ${NSD_GetText} $TextComport $R0
+    ${NSD_GetText} $TextBaudRate $R1
+    ${NSD_GetText} $TextFormat $R2
+    ${NSD_GetText} $TextTimeOut $R3
+	${NSD_GetText} $TextRetriesCount $R4
+    ;MessageBox MB_OK "Comport: $R0, BaudRate: $R1, Format: $R2, TimeOut(sec): $R3, RetriesCount: $R4"
+FunctionEnd
+
